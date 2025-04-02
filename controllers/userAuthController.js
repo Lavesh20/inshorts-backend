@@ -120,7 +120,7 @@ const forgotPassword = async (req, res) => {
       { expiresIn: '10m' }
     );
 
-    const resetLink = `http://localhost:3000/en/reset-password/${token}`;
+    const resetLink = `https://tickershorts.vercel.app/en/reset-password/${token}`;
 
     await sendEmail(
       email,
