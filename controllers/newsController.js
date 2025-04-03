@@ -254,7 +254,7 @@ exports.deleteNews = async (req, res) => {
 };
 
 // 📢 Get All Custom News (No Category Filter)
-exports.getAllNews = async (req, res) => {
+exports.getAllCustomNews = async (req, res) => {
   try {
     const news = await CustomNews.find().sort({ createdAt: -1 });
     
