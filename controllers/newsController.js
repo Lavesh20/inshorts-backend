@@ -254,11 +254,16 @@ exports.deleteNews = async (req, res) => {
 };
 
 // 📢 Get All Custom News (No Category Filter)
-exports.getAllCustomNews = async (req, res) => {
+exports.getAllNews = async (req, res) => {
   try {
-    const news = await CustomNews.find();
-    console.log("Fetched News:", news.length, "items");
-
+    const news = await CustomNews.find().sort({ createdAt: -1 });
+    
+    console.log("Fetched News:", news.length, "items"); // Debugging output
+    
+    if (news.length === 0) {
+      console.log("No news found in database.");
+    }
+    
     res.status(200).json(news);
   } catch (error) {
     console.error("Error fetching all news:", error);
