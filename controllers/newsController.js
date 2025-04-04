@@ -295,18 +295,18 @@ exports.addNews = async (req, res) => {
       return res.status(400).json({ message: "Image is required!" });
     }
 
-    // Upload image to Cloudinary (Store in 'news' folder)
+    // Upload image to Cloudinary (Stored in 'images' folder)
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "news",
+      folder: "images", // 🔹 Changed to "images"
     });
 
     const news = new CustomNews({
       title,
       description,
-      photo: result.secure_url, // Cloudinary URL
+      photo: result.secure_url, // 🔹 Store Cloudinary image URL
       category,
       url,
-      cloudinary_id: result.public_id, // Store Cloudinary image ID
+      cloudinary_id: result.public_id, // 🔹 Store Cloudinary image ID for deletion
     });
 
     await news.save();
@@ -317,21 +317,25 @@ exports.addNews = async (req, res) => {
   }
 };
 
-// 📜 Get News by Category (Handles "all" correctly)
+// 📜 Get News by Category (Ensures Images are Fetched Correctly)
 exports.getNewsByCategory = async (req, res) => {
   try {
     const { category } = req.params;
     console.log("Requested category:", category);
 
-    const query = category && category !== "undefined" && category !== "" ? 
-      { category: new RegExp(category, "i") } : {};
+    const query = category && category !== "undefined" && category !== "" 
+      ? { category: new RegExp(category, "i") } 
+      : {};
 
     const news = await CustomNews.find(query).sort({ createdAt: -1 });
-    console.log(`Found ${news.length} matching news items`);
+
+    if (!news || news.length === 0) {
+      return res.status(404).json({ message: "No news found in this category" });
+    }
 
     res.status(200).json(news);
   } catch (error) {
-    console.error("Error fetching custom news:", error);
+    console.error("Error fetching news by category:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -348,11 +352,11 @@ exports.updateNews = async (req, res) => {
     // Upload new image if provided
     if (req.file) {
       if (news.cloudinary_id) {
-        await cloudinary.uploader.destroy(news.cloudinary_id); // Delete old image
+        await cloudinary.uploader.destroy(news.cloudinary_id); // 🔹 Delete old image
       }
 
       const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "news",
+        folder: "images", // 🔹 Changed to "images"
       });
 
       updatedFields.photo = result.secure_url;
@@ -378,7 +382,7 @@ exports.deleteNews = async (req, res) => {
     if (!news) return res.status(404).json({ message: "News not found" });
 
     if (news.cloudinary_id) {
-      await cloudinary.uploader.destroy(news.cloudinary_id); // Delete image
+      await cloudinary.uploader.destroy(news.cloudinary_id); // 🔹 Delete Cloudinary image
     }
 
     await news.deleteOne();
@@ -389,15 +393,15 @@ exports.deleteNews = async (req, res) => {
   }
 };
 
-// 📢 Get All Custom News (Now Fetches Images Correctly)
+// 📢 Get All Custom News (Fixes Image Fetching)
 exports.getAllCustomNews = async (req, res) => {
   try {
     const news = await CustomNews.find().sort({ createdAt: -1 });
 
-    console.log("Fetched News:", news.length, "items"); // Debugging output
+    console.log("Fetched News:", news.length, "items");
 
     if (news.length === 0) {
-      console.log("No news found in database.");
+      return res.status(404).json({ message: "No news found" });
     }
 
     res.status(200).json(news);
