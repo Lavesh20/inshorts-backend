@@ -132,8 +132,159 @@
 // };
 
 
+// const CustomNews = require("../models/CustomNews");
+// const cloudinary = require("../config/cloudinary"); // Import Cloudinary configuration
+
+// // 🆕 Add News with Cloudinary Image Upload
+// exports.addNews = async (req, res) => {
+//   try {
+//     const { title, description, category, url } = req.body;
+
+//     if (!req.file) {
+//       return res.status(400).json({ message: "Image is required!" });
+//     }
+
+//     // Upload image to Cloudinary
+//     const result = await cloudinary.uploader.upload(req.file.path, {
+//       folder: "news", // Organize images in a "news" folder
+//     });
+
+//     const news = new CustomNews({
+//       title,
+//       description,
+//       photo: result.secure_url, // Store Cloudinary URL
+//       category,
+//       url,
+//       cloudinary_id: result.public_id, // Store Cloudinary image ID
+//     });
+
+//     await news.save();
+//     res.status(201).json({ message: "News added successfully", news });
+//   } catch (error) {
+//     console.error("Error adding news:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // 📜 Get News by Category (Handles "all" correctly)
+// exports.getNewsByCategory = async (req, res) => {
+//   try {
+//     const { category } = req.params;
+//     console.log("Requested category:", category);
+
+//     const query =
+//       category && category !== "undefined" && category !== ""
+//         ? { category: new RegExp(category, "i") }
+//         : {};
+
+//     const news = await CustomNews.find(query);
+//     console.log(`Found ${news.length} matching news items`);
+
+//     const transformedNews = news.map((item) => ({
+//       title: item.title,
+//       description: item.description,
+//       image: item.photo,
+//       url: item.url,
+//       publishedAt: item.createdAt,
+//       source: {
+//         name: item.by,
+//         url: item.url,
+//       },
+//       category: item.category,
+//     }));
+
+//     res.status(200).json(transformedNews);
+//   } catch (error) {
+//     console.error("Error fetching custom news:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // 📝 Update News with Cloudinary Image Upload (if provided)
+// exports.updateNews = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     let updatedFields = req.body;
+
+//     const news = await CustomNews.findById(id);
+//     if (!news) return res.status(404).json({ message: "News not found" });
+
+//     // Upload new image if provided
+//     if (req.file) {
+//       if (news.cloudinary_id) {
+//         await cloudinary.uploader.destroy(news.cloudinary_id); // Delete old image from Cloudinary
+//       }
+
+//       const result = await cloudinary.uploader.upload(req.file.path, {
+//         folder: "news",
+//       });
+
+//       updatedFields.photo = result.secure_url;
+//       updatedFields.cloudinary_id = result.public_id;
+//     }
+
+//     const updatedNews = await CustomNews.findByIdAndUpdate(id, updatedFields, {
+//       new: true,
+//     });
+
+//     res.status(200).json({ message: "News updated successfully", updatedNews });
+//   } catch (error) {
+//     console.error("Error updating news:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // ❌ Delete News (Deletes Cloudinary Image too)
+// exports.deleteNews = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const news = await CustomNews.findById(id);
+//     if (!news) return res.status(404).json({ message: "News not found" });
+
+//     if (news.cloudinary_id) {
+//       await cloudinary.uploader.destroy(news.cloudinary_id); // Delete image from Cloudinary
+//     }
+
+//     await news.deleteOne();
+//     res.status(200).json({ message: "News deleted successfully" });
+//   } catch (error) {
+//     console.error("Error deleting news:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
+// // 📢 Get All Custom News (No Category Filter)
+// exports.getAllCustomNews = async (req, res) => {
+//   try {
+//     const news = await CustomNews.find().sort({ createdAt: -1 });
+    
+//     console.log("Fetched News:", news.length, "items"); // Debugging output
+    
+//     if (news.length === 0) {
+//       console.log("No news found in database.");
+//     }
+    
+//     // Upload images to Cloudinary
+//     const uploadedImages = await Promise.all(news.map(async (newsItem) => {
+//       if (newsItem.image) {
+//         const uploadResult = await cloudinary.uploader.upload(newsItem.image, {
+//           folder: 'custom-news',
+//           resource_type: 'image',
+//         });
+//         newsItem.image = uploadResult.secure_url;
+//       }
+//       return newsItem;
+//     }));
+    
+//     res.status(200).json(uploadedImages);
+//   } catch (error) {
+//     console.error("Error fetching all news:", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 const CustomNews = require("../models/CustomNews");
-const cloudinary = require("../config/cloudinary"); // Import Cloudinary configuration
+const cloudinary = require("../config/cloudinary");
 
 // 🆕 Add News with Cloudinary Image Upload
 exports.addNews = async (req, res) => {
@@ -144,15 +295,15 @@ exports.addNews = async (req, res) => {
       return res.status(400).json({ message: "Image is required!" });
     }
 
-    // Upload image to Cloudinary
+    // Upload image to Cloudinary (Store in 'news' folder)
     const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: "news", // Organize images in a "news" folder
+      folder: "news",
     });
 
     const news = new CustomNews({
       title,
       description,
-      photo: result.secure_url, // Store Cloudinary URL
+      photo: result.secure_url, // Cloudinary URL
       category,
       url,
       cloudinary_id: result.public_id, // Store Cloudinary image ID
@@ -172,28 +323,13 @@ exports.getNewsByCategory = async (req, res) => {
     const { category } = req.params;
     console.log("Requested category:", category);
 
-    const query =
-      category && category !== "undefined" && category !== ""
-        ? { category: new RegExp(category, "i") }
-        : {};
+    const query = category && category !== "undefined" && category !== "" ? 
+      { category: new RegExp(category, "i") } : {};
 
-    const news = await CustomNews.find(query);
+    const news = await CustomNews.find(query).sort({ createdAt: -1 });
     console.log(`Found ${news.length} matching news items`);
 
-    const transformedNews = news.map((item) => ({
-      title: item.title,
-      description: item.description,
-      image: item.photo,
-      url: item.url,
-      publishedAt: item.createdAt,
-      source: {
-        name: item.by,
-        url: item.url,
-      },
-      category: item.category,
-    }));
-
-    res.status(200).json(transformedNews);
+    res.status(200).json(news);
   } catch (error) {
     console.error("Error fetching custom news:", error);
     res.status(500).json({ message: error.message });
@@ -212,7 +348,7 @@ exports.updateNews = async (req, res) => {
     // Upload new image if provided
     if (req.file) {
       if (news.cloudinary_id) {
-        await cloudinary.uploader.destroy(news.cloudinary_id); // Delete old image from Cloudinary
+        await cloudinary.uploader.destroy(news.cloudinary_id); // Delete old image
       }
 
       const result = await cloudinary.uploader.upload(req.file.path, {
@@ -242,7 +378,7 @@ exports.deleteNews = async (req, res) => {
     if (!news) return res.status(404).json({ message: "News not found" });
 
     if (news.cloudinary_id) {
-      await cloudinary.uploader.destroy(news.cloudinary_id); // Delete image from Cloudinary
+      await cloudinary.uploader.destroy(news.cloudinary_id); // Delete image
     }
 
     await news.deleteOne();
@@ -253,30 +389,18 @@ exports.deleteNews = async (req, res) => {
   }
 };
 
-// 📢 Get All Custom News (No Category Filter)
+// 📢 Get All Custom News (Now Fetches Images Correctly)
 exports.getAllCustomNews = async (req, res) => {
   try {
     const news = await CustomNews.find().sort({ createdAt: -1 });
-    
+
     console.log("Fetched News:", news.length, "items"); // Debugging output
-    
+
     if (news.length === 0) {
       console.log("No news found in database.");
     }
-    
-    // Upload images to Cloudinary
-    const uploadedImages = await Promise.all(news.map(async (newsItem) => {
-      if (newsItem.image) {
-        const uploadResult = await cloudinary.uploader.upload(newsItem.image, {
-          folder: 'custom-news',
-          resource_type: 'image',
-        });
-        newsItem.image = uploadResult.secure_url;
-      }
-      return newsItem;
-    }));
-    
-    res.status(200).json(uploadedImages);
+
+    res.status(200).json(news);
   } catch (error) {
     console.error("Error fetching all news:", error);
     res.status(500).json({ message: error.message });
