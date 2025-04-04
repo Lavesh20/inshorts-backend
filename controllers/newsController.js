@@ -264,7 +264,19 @@ exports.getAllCustomNews = async (req, res) => {
       console.log("No news found in database.");
     }
     
-    res.status(200).json(news);
+    // Upload images to Cloudinary
+    const uploadedImages = await Promise.all(news.map(async (newsItem) => {
+      if (newsItem.image) {
+        const uploadResult = await cloudinary.uploader.upload(newsItem.image, {
+          folder: 'custom-news',
+          resource_type: 'image',
+        });
+        newsItem.image = uploadResult.secure_url;
+      }
+      return newsItem;
+    }));
+    
+    res.status(200).json(uploadedImages);
   } catch (error) {
     console.error("Error fetching all news:", error);
     res.status(500).json({ message: error.message });
