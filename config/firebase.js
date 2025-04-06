@@ -8,4 +8,7 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+console.log("✅ Firebase Admin initialized");
+
+
 module.exports = admin;
