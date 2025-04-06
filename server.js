@@ -110,7 +110,7 @@ const connectDB = require("./config/database");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
 // const admin = require("firebase-admin");
-const admin = require("./config/firebase");
+// const admin = require("./config/firebase");
 
 
 // Import Routes & Models

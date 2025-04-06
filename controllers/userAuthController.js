@@ -300,30 +300,38 @@ const userLogin = async (req, res) => {
 // Google Authentication (Signup & Login)
 const googleAuth = async (req, res) => {
   try {
-    const { token } = req.body;
+    const { token } = req.body; // Should match frontend key
 
     if (!token) {
+      console.log("❌ No token received from frontend");
       return res.status(400).json({ message: "Google token is required" });
     }
 
+    // 🔍 Decode Firebase ID token
     const decodedToken = await admin.auth().verifyIdToken(token);
-    const { email, name = "Google User", picture = "" } = decodedToken;
+    console.log("✅ Decoded Token:", decodedToken);
+
+    const { email, name, picture } = decodedToken;
 
     if (!email) {
-      return res.status(400).json({ message: "Email not found in token" });
+      console.log("❌ No email found in decoded token");
+      return res.status(400).json({ message: "Invalid Google token" });
     }
 
     let user = await User.findOne({ email });
 
     if (!user) {
       user = new User({
-        fullName: name,
+        fullName: name || "Google User",
         email,
-        password: "", // No password needed
+        password: "", // No password for Google users
         agreeToTerms: true,
       });
 
       await user.save();
+      console.log("✅ New user created");
+    } else {
+      console.log("✅ Existing user found");
     }
 
     const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -342,10 +350,7 @@ const googleAuth = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Google Authentication Error:", error);
-    res.status(500).json({
-      message: "Google authentication failed",
-      error: error.message || "Something went wrong",
-    });
+    return res.status(500).json({ message: "Authentication failed", error: error.message });
   }
 };
 
