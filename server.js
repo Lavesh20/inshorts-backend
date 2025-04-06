@@ -109,7 +109,8 @@ const bcrypt = require("bcryptjs");
 const connectDB = require("./config/database");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
-const admin = require("firebase-admin");
+// const admin = require("firebase-admin");
+const admin = require("./config/firebase");
 
 
 // Import Routes & Models
@@ -137,13 +138,13 @@ app.use(
   })
 );
 
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf-8")
-);
+// const serviceAccount = JSON.parse(
+//   Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf-8")
+// );
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 
 // Middleware

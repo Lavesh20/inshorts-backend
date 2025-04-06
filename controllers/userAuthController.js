@@ -202,7 +202,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const admin = require('firebase-admin');
+const admin = require('../config/firebase');
 const { sendEmail } = require('../utils/email');
 
 // Helper function to hash passwords consistently
