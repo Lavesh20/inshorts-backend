@@ -129,14 +129,28 @@ connectDB();
 const app = express();
 
 // CORS Configuration
+const allowedOrigins = [
+  "https://tickershorts.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:3000/en"
+];
+
 app.use(
   cors({
-    origin: "https://tickershorts.vercel.app", // Replace with frontend URL
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
+
 
 // const serviceAccount = JSON.parse(
 //   Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT, "base64").toString("utf-8")
