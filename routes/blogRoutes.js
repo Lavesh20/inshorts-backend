@@ -5,7 +5,6 @@ const { createBlog, getAllBlogs, getBlogById, deleteBlog } = require("../control
 
 const router = express.Router();
 
-// ✅ Configure Multer for File Uploads
 const storage = multer.diskStorage({
   destination: "uploads/",
   filename: (req, file, cb) => {
@@ -14,11 +13,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ✅ Blog Routes
 router.post("/", upload.single("coverImage"), createBlog);
 router.get("/", getAllBlogs);
 router.get("/:id", getBlogById);
 router.delete("/:id", deleteBlog);
 
 module.exports = router;
-
