@@ -26,7 +26,7 @@ const app = express();
 // CORS Configuration
 const allowedOrigins = [
   "https://www.tickershorts.com",
-  "https://tickershorts.vercel.app",
+  "https://tickershorts.com",
   "http://localhost:3000"
 ];
 
